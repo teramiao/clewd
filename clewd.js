@@ -2,7 +2,7 @@
  * SET YOUR COOKIE HERE
  * @preserve
  */
-const Cookie = '__cf_bm=DlQJXxN8xH1_9o1LmaA22ymSC_ofIR_UiW219occRf8-1689328888-0-ASeVddKSSKE/hprhiGa9AW3GgqgksqbJN/ysEL3WeXG8s9Ky8u/VBo+9eIYNO30ZPcY/t1JuG/Jpd5/yRFt0q40=; sessionKey=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; intercom-device-id-lupk8zyo=f247042d-0525-4b4e-ba4f-2f2a01614a4f; intercom-session-lupk8zyo=NGdBTXJiYVBBNUZYOVNKYmdPQnUzamp2MU5OMHd0OHNJdlVlUzE5Q0tNNWRzbVFoOTJURndvY3dWUDJERjRYdy0tRm4vYW5Ea2J0MVBCcHB2RmwvaW5RZz09--aaaa7c2be3399522b460261b8c09f0d8eb5b44ab';
+const Cookie = 'intercom-device-id-lupk8zyo=f247042d-0525-4b4e-ba4f-2f2a01614a4f; __cf_bm=SSk6Zz9w93CShLCXMdu7fCIqQhgGQZBmQ4Rxvl867h4-1689535235-0-AVBAd/GolDW/opcGmfcOLpLAf2HI4fOiFtf1MlZMkX8aOAHngrbT6XsPZV9p0VNs8SGDmHs7rj4gv7iF4jFVn2M=; sessionKey=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; intercom-session-lupk8zyo=VEVxWk1KY0kyVW9Kak1hNXM0ZCtHMFBsdk5nOEd2emtkYlJiQmg5WFVqa0RXOFVzdW5kajBvVUlaelFJeXB0NC0tay9naUVvV1RYYUFyTzJjM1hoUnQzdz09--5a46f5d2d32f694d9d45dd2b243fb3cbfab9a9bd';
 
 /**
 ## EXPERIMENTAL
@@ -31,7 +31,7 @@ const Cookie = '__cf_bm=DlQJXxN8xH1_9o1LmaA22ymSC_ofIR_UiW219occRf8-1689328888-0
     'AntiStall': false,
     'ClearFlags': false,
     'RecycleChats': false,
-    'StripAssistant': false,
+    'StripAssistant': true,
     'StripHuman': false
 };
 
