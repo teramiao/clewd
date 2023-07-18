@@ -28,10 +28,10 @@ const Cookie = 'intercom-device-id-lupk8zyo=f247042d-0525-4b4e-ba4f-2f2a01614a4f
     * might(?) combo well with RecycleChats, avoids sending the whole prompt history to each message
  * @preserve
  */ const Settings = {
-    'AntiStall': false,
+    'AntiStall': 2,
     'ClearFlags': false,
     'RecycleChats': false,
-    'StripAssistant': false,
+    'StripAssistant': true,
     'StripHuman': false
 };
 
