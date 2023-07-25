@@ -77,12 +77,11 @@ const Settings = {
     StripHuman: false
 };
 
-const Ips = '127.0.0.1';
+const Ip = process.env.Ip || '127.0.0.1';
 const Port = 8444;
 
 /***********************/
 const Cookie = process.env.Cookie || Cookies;
-const Ip = process.env.Ip || Ips;
 
 const localtunnel = require('localtunnel');
 
