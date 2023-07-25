@@ -63,18 +63,18 @@ const Cookies = '';
  * @preserve
  */
 const Settings = {
-    padtxt: true,  //自动补全tokens超过10000
-    AdaptClaude: true,
-    AntiStall: 2,
-    ClearFlags: true,
-    DeleteChats: false,
-    PassParams: false,
-    PreventImperson: true,
-    PromptExperiment: true,
-    RecycleChats: false,
-    RetryRegenerate: false,
-    StripAssistant: true,
-    StripHuman: false
+    padtxt: process.env.padtxt || true,  //自动补全tokens超过10000
+    AdaptClaude: process.env.AdaptClaude || true,
+    AntiStall: process.env.AntiStall || 2,
+    ClearFlags: process.env.ClearFlags || true,
+    DeleteChats: process.env.DeleteChats || false,
+    PassParams: process.env.PassParams || false,
+    PreventImperson: process.env.PreventImperson || true,
+    PromptExperiment: process.env.PromptExperiment || true,
+    RecycleChats: process.env.RecycleChats || false,
+    RetryRegenerate: process.env.RetryRegenerate || false,
+    StripAssistant: process.env.StripAssistant || true,
+    StripHuman: process.env.StripHuman || false
 };
 
 const Ip = process.env.port ? '0.0.0.0' : '127.0.0.1';
