@@ -53,6 +53,11 @@ nodejs>=20.4.*
  3. ClearFlags: (false)/true
     * possibly snake-oil
 
+ 4. DeleteChats: (false)/true
+    * for privacy, auto deletes your conversations after each reply
+    * **if set to true, will also wipe old conversations on startup!**
+    * no effect if RetryRegenerate is set to true
+
  5. PassParams: (false)/true
     * true will send the temperature you set on your frontent
     * only values under <=1
@@ -64,13 +69,23 @@ nodejs>=20.4.*
     * making it so it doesn't hallucinate speaking as you (chance of missing some spicy things)
     * it's probable this will trigger before AntiStall if you have that on
 
- 7. RecycleChats: (false)/true
-    * false is much less likely to get caught in a censorship loop
+ 7. PromptExperiment: (true)/false
+    * an alternative way to send your prompt to the AI
+    * experiment before setting to false
 
- 8. StripAssistant: (false)/true
-    * might be good if your prompt/jailbreak itself ends with Assistant: 
+ 8. RecycleChats: (false)/true
+    * reuses the same chat on the website, based on the first prompt
+    * false is less likely to get caught in a censorship loop
 
- 9. StripHuman: (false)/true
+ 9. RetryRegenerate: (false)/true
+    * uses the AI's own retry mechanism when you regenerate on your frontend
+    * instead of a new conversation
+    * experiment with it
+
+ 10. StripAssistant: (false)/true
+    * might be good IF your prompt/jailbreak itself ends with Assistant: 
+
+ 11. StripHuman: (false)/true
     * bad idea without RecycleChats, sends only your very last message
 
 ---

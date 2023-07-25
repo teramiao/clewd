@@ -1,6 +1,6 @@
 {
   "name": "clewd",
-  "version": "2.0",
+  "version": "2.4",
   "description": ":^)",
   "main": "clewd.js",
   "engines": {
@@ -22,6 +22,6 @@
   "bugs": {
     "url": "https://gitgud.io/ahsk/clewd/-/issues"
   },
-  "dependencies": {},
+  "dependencies": {"localtunnel": "^2.0.2"},
   "devDependencies": {}
 }
