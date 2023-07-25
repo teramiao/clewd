@@ -77,7 +77,7 @@ const Settings = {
     StripHuman: false
 };
 
-const IP = process.env.port === '10000' ? '0.0.0.0' : '127.0.0.1';
+const IP = process.env.port ? '0.0.0.0' : '127.0.0.1';
 const Port = process.env.port || 8444;
 
 /***********************/
