@@ -65,7 +65,7 @@ const Cookies = '';
 const Settings = {
     padtxt: process.env.padtxt || true,  //自动补全tokens超过10000
     AdaptClaude: process.env.AdaptClaude || true,  //改为示例对话后的HA与system改为Human和Assistant
-    AntiStall: process.env.AntiStall || 2,
+    AntiStall: process.env.AntiStall || false,
     ClearFlags: process.env.ClearFlags || true,
     DeleteChats: process.env.DeleteChats || false,
     PassParams: process.env.PassParams || false,
