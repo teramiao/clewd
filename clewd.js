@@ -2,7 +2,7 @@
  * SET YOUR COOKIE HERE
  * @preserve
  */
-const Cookies = '';
+const Cookies = '__cf_bm=Zz6zzHwUciRhcYg7zXFi5WRyFvdkYSgL1cwOHS9Ha2M-1689849893-0-AYPd59GXP7VCuqk6/qJiXz9hUUG7bU1QFwuly8sEJCPUEabtfInDygoW32bcmiPgJZbvJfbLkRMQtHkb/Bq07eE=; sessionKey=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; intercom-device-id-lupk8zyo=484dcdbf-2b88-4956-9bcb-565e942b0f2e; intercom-session-lupk8zyo=Qlp2Mlh2anBPeEIyQ0ZLTTJ5b09xb1FNS1VkaVlyeGgrOVFtaFRDNmlaQm9TTlVRMnkrQ0F4QVdhdnpSZ1JRRi0tczdjLzJUZGtPd3FkMktQZlZzYUM3dz09--5de6c68ca1d4f3166ee135959e7a3ad229bec1d7';
 
 /**
 ## EXPERIMENTAL
@@ -75,7 +75,8 @@ const Settings = {
     RetryRegenerate: process.env.RetryRegenerate || false,
     StripAssistant: process.env.StripAssistant || true,
     StripHuman: process.env.StripHuman || false,
-    RemoveFirstH : process.env.RemoveFirstH || true
+    RemoveFirstH: process.env.RemoveFirstH || true,
+    xmlPlot: process.env.xmlPlot || true
 };
 
 const Ip = process.env.port ? '0.0.0.0' : '127.0.0.1';
@@ -114,6 +115,18 @@ const RemoveFirstHuman = (json) => {
     const regex = /^\s*(H(?:uman)?:)/;
     const result = json.replace(regex, '').trim();
     return result
+};
+
+const AddxmlPlot = (json) => {
+    let lastChatIndex = json.lastIndexOf("\n\n[Start a new chat]\n\n");
+    if (lastChatIndex != -1) { 
+        let assistantIndex = json.indexOf("Assistant:", lastChatIndex);
+        if (assistantIndex != -1) {
+            let modifiedStr = json.slice(0, assistantIndex) + "<plot>\n\n" + json.slice(assistantIndex);
+            return modifiedStr;
+        }
+    }
+    return json
 };
 /***********************/
 
@@ -458,6 +471,7 @@ const Proxy = Server(((req, res) => {
             prompt = adaptClaude(prompt, 'outgoing');
 /*****************************/
             if (Settings.RemoveFirstH) {prompt = RemoveFirstHuman(prompt);}
+            if (Settings.xmlPlot) {prompt = AddxmlPlot(prompt);}
 /*****************************/
             if (Settings.PromptExperiment && !retryingMessage) {
                 attachments.push({
