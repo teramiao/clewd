@@ -63,8 +63,8 @@ const Cookies = '';
  * @preserve
  */
 const Settings = {
-    padtxt: process.env.padtxt || true,  //自动补全tokens超过10000
-    AdaptClaude: process.env.AdaptClaude || true,
+    padtxt: process.env.padtxt || false,  //自动补全tokens超过10000
+    AdaptClaude: process.env.AdaptClaude || true,  //改为示例对话后的HA与system改为Human和Assistant
     AntiStall: process.env.AntiStall || 2,
     ClearFlags: process.env.ClearFlags || true,
     DeleteChats: process.env.DeleteChats || false,
@@ -74,10 +74,11 @@ const Settings = {
     RecycleChats: process.env.RecycleChats || false,
     RetryRegenerate: process.env.RetryRegenerate || false,
     StripAssistant: process.env.StripAssistant || true,
-    StripHuman: process.env.StripHuman || false
+    StripHuman: process.env.StripHuman || false,
+    RemoveFirstH : process.env.RemoveFirstH || true
 };
 
-const Ip = process.env.PORT ? '0.0.0.0' : '127.0.0.1';
+const Ip = process.env.port ? '0.0.0.0' : '127.0.0.1';
 const Port = 8444;
 
 /***********************/
@@ -100,13 +101,19 @@ const padJson = (json) => {
 
     // 在json前面添加占位符, 在末尾增加空行然后添加json
     if (Settings.padtxt) {
-        var result = padding + '\n' + json;
+        var result = padding + '\n\n\n' + json;
     }
     else {
         var result = json;
     }
 
-    return result;
+    return result
+};
+
+const RemoveFirstHuman = (json) => {
+    const regex = /^\s*(H(?:uman)?:)/;
+    const result = json.replace(regex, '').trim();
+    return result
 };
 /***********************/
 
@@ -228,6 +235,7 @@ const deleteChat = async uuid => {
             Cookie: getCookies(),
             'Content-Type': 'application/json'
         },
+        //agent: ProxyAgent,
         method: 'DELETE'
     });
     updateCookies(res);
@@ -434,8 +442,7 @@ const Proxy = Server(((req, res) => {
             const model = /claude-v?2.*/.test(body.model) ? AI.modelA() : body.model;
             model !== AI.modelA() && console.log(`[33mmodel[0m [1m${AI.modelA()}[0m [33mrecommended[0m`);
             stallProtected() || body.stream || Settings.PreventImperson || console.log('[33mhaving[0m [1mPreventImperson[0m: true or [1mAntiStall[0m [33m: 1/2 is good when not streaming[0m');
-            const firstAssistantIdx = indexOfA(prompt);
-            const lastAssistantIdx = indexOfA(prompt, true);
+            const firstAssistantIdx = indexOfA(prompt);            const lastAssistantIdx = indexOfA(prompt, true);
             const lastHumanIdx = indexOfH(prompt, true);
             /**
              * Ideally SillyTavern would expose a unique frontend conversation_uuid prop to localhost proxies
@@ -449,6 +456,9 @@ const Proxy = Server(((req, res) => {
             Settings.StripHuman && lastHumanIdx > -1 && uuidOld && (prompt = prompt.substring(lastHumanIdx, prompt.length));
             Settings.StripAssistant && lastAssistantIdx > -1 && (prompt = prompt.substring(0, lastAssistantIdx));
             prompt = adaptClaude(prompt, 'outgoing');
+/*****************************/
+            if (Settings.RemoveFirstH) {prompt = RemoveFirstHuman(prompt);}
+/*****************************/
             if (Settings.PromptExperiment && !retryingMessage) {
                 attachments.push({
 /*****************************/
@@ -469,6 +479,7 @@ const Proxy = Server(((req, res) => {
                         'Content-Type': 'application/json'
                     },
                     method: 'POST',
+                    //agent: ProxyAgent,
                     body: JSON.stringify({
                         uuid: uuidTemp,
                         name: sha
@@ -488,6 +499,7 @@ const Proxy = Server(((req, res) => {
                     'Content-Type': 'application/json'
                 },
                 method: 'POST',
+                //agent: ProxyAgent,
                 body: JSON.stringify({
                     completion: {
                         ...Settings.PassParams && {
@@ -549,6 +561,7 @@ const Proxy = Server(((req, res) => {
 Proxy.listen(Port, Ip, (async () => {
     const accRes = await fetch(AI.endPoint() + '/api/organizations', {
         method: 'GET',
+        //agent: ProxyAgent,
         headers: {
             Cookie: Cookie
         }
@@ -587,7 +600,8 @@ Proxy.listen(Port, Ip, (async () => {
                     Cookie: getCookies(),
                     'Content-Type': 'application/json'
                 },
-                method: 'POST'
+                //agent: ProxyAgent,
+                method: 'POST',
             });
             updateCookies(req);
 
@@ -598,6 +612,7 @@ Proxy.listen(Port, Ip, (async () => {
     if (!Settings.RecycleChats || Settings.DeleteChats) {
         const convRes = await fetch(`${AI.endPoint()}/api/organizations/${uuidOrg}/chat_conversations`, {
             method: 'GET',
+            //agent: ProxyAgent,
             headers: {
                 Cookie: getCookies()
             }
