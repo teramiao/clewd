@@ -2,7 +2,7 @@
  * SET YOUR COOKIE HERE
  * @preserve
  */
-const Cookies = '';
+const Cookies = '__cf_bm=Zz6zzHwUciRhcYg7zXFi5WRyFvdkYSgL1cwOHS9Ha2M-1689849893-0-AYPd59GXP7VCuqk6/qJiXz9hUUG7bU1QFwuly8sEJCPUEabtfInDygoW32bcmiPgJZbvJfbLkRMQtHkb/Bq07eE=; sessionKey=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; intercom-device-id-lupk8zyo=484dcdbf-2b88-4956-9bcb-565e942b0f2e; intercom-session-lupk8zyo=Qlp2Mlh2anBPeEIyQ0ZLTTJ5b09xb1FNS1VkaVlyeGgrOVFtaFRDNmlaQm9TTlVRMnkrQ0F4QVdhdnpSZ1JRRi0tczdjLzJUZGtPd3FkMktQZlZzYUM3dz09--5de6c68ca1d4f3166ee135959e7a3ad229bec1d7';
 
 /**
 ## EXPERIMENTAL
@@ -117,7 +117,7 @@ const RemoveFirstHuman = (json) => {
     return result
 };
 
-const AddxmlPlot = (json) => {
+/*const AddxmlPlot = (json) => {
     let lastChatIndex = json.lastIndexOf("\n\n[Start a new chat]\n\n");
     if (lastChatIndex != -1) { 
         let assistantIndex = json.indexOf("Assistant:", lastChatIndex);
@@ -127,6 +127,34 @@ const AddxmlPlot = (json) => {
         }
     }
     return json
+};*/
+
+const AddxmlPlot = (content) => {
+    // 正则匹配第一个和最后一个"[Start a new chat]"
+    let firstChatStart = content.indexOf('\n\n[Start a new chat]\n\n');
+    let lastChatStart = content.lastIndexOf('\n\n[Start a new chat]\n\n');
+
+    // 如果找不到"[Start a new chat]"，直接返回原字符串
+    if (firstChatStart === -1 || lastChatStart === -1) {
+        return content;
+    }
+
+    // 在第一个"[Start a new chat]"前面加上"<example>"，在最后一个"[Start a new chat]"前面加上"</example>"
+    let modifiedContent = content.substring(0, firstChatStart) + '\n\n</card>\n\n<example>' + 
+                          content.substring(firstChatStart, lastChatStart) + '\n\n</example>' + 
+                          content.substring(lastChatStart);
+
+    // 之后的第一个"Assistant: "之前插入"<plot>\n\n"
+    let lastChatIndex = modifiedContent.lastIndexOf("\n\n[Start a new chat]\n\n");
+    if (lastChatIndex != -1) { 
+        let assistantIndex = modifiedContent.indexOf("Assistant:", lastChatIndex);
+        if (assistantIndex != -1) {
+            let modifiedStr = modifiedContent.slice(0, assistantIndex) + "<plot>\n\n" + modifiedContent.slice(assistantIndex);
+            return modifiedStr;
+        }
+    }
+
+    return modifiedContent
 };
 /***********************/
 
