@@ -453,7 +453,7 @@ const Proxy = Server(((req, res) => {
                 param: null,
                 code: 404
             }
-        }, 404);
+        }, 200);
     }
     setTitle('recv...');
     let fetchAPI;
