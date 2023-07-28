@@ -79,7 +79,7 @@ const Settings = {
     xmlPlot: process.env.xmlPlot || true
 };
 
-const Ip = process.env.port ? '0.0.0.0' : '127.0.0.1';
+const Ip = process.env.PORT ? '0.0.0.0' : '127.0.0.1';
 const Port = 8444;
 
 /***********************/
