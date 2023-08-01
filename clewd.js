@@ -2,7 +2,7 @@
  * PASTE YOUR COOKIE BETWEEN THE QUOTES
  * @preserve
  */
-const Cookies = '';
+const Cookies = '__cf_bm=Zz6zzHwUciRhcYg7zXFi5WRyFvdkYSgL1cwOHS9Ha2M-1689849893-0-AYPd59GXP7VCuqk6/qJiXz9hUUG7bU1QFwuly8sEJCPUEabtfInDygoW32bcmiPgJZbvJfbLkRMQtHkb/Bq07eE=; sessionKey=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; intercom-device-id-lupk8zyo=484dcdbf-2b88-4956-9bcb-565e942b0f2e; intercom-session-lupk8zyo=Qlp2Mlh2anBPeEIyQ0ZLTTJ5b09xb1FNS1VkaVlyeGgrOVFtaFRDNmlaQm9TTlVRMnkrQ0F4QVdhdnpSZ1JRRi0tczdjLzJUZGtPd3FkMktQZlZzYUM3dz09--5de6c68ca1d4f3166ee135959e7a3ad229bec1d7';
 
 /**
 ## EXPERIMENTAL
@@ -64,7 +64,7 @@ const Cookies = '';
  */
 const Settings = {
     padtxt: process.env.padtxt || true,  //自动补全tokens超过10000
-    ReplaceSamples: process.env.ReplaceSamples || true,
+    ReplaceSamples: process.env.ReplaceSamples || false,
     AntiStall: process.env.AntiStall || false,
     ClearFlags: process.env.ClearFlags || true,
     DeleteChats: process.env.DeleteChats || false,
@@ -160,7 +160,7 @@ const StallTrigger = 1572864;
  * @default 8
  * @preserve
  */
-const BufferSize = 8;
+const BufferSize = 1;
 
 const {createServer: Server, IncomingMessage: IncomingMessage, ServerResponse: ServerResponse} = require('node:http');
 const {createHash: Hash, randomUUID: randomUUID, randomInt: randomInt, randomBytes: randomBytes} = require('node:crypto');
@@ -258,7 +258,7 @@ const setTitle = title => {
 };
 
 class ClewdStream extends TransformStream {
-    constructor(minSize = 8, modelName = AI.modelA(), streaming, abortController) {
+    constructor(minSize = 1, modelName = AI.modelA(), streaming, abortController) {
         super({
             transform: (chunk, controller) => {
                 this.#handle(chunk, controller);
@@ -477,8 +477,8 @@ const Proxy = Server(((req, res) => {
             Settings.StripAssistant && lastAssistantIdx > -1 && (prompt = prompt.substring(0, lastAssistantIdx));
             prompt = (text => {
                 const replacers = {
-                    H: [ /(\n{2,}H: (?![\s\S]*?\n\n\[Start a new))/gm, Human ],
-                    A: [ /(\n{2,}A: (?![\s\S]*?\n\n\[Start a new))/gm, Assistant ]
+                    H: [ /(\n{2,}H: )/gm, Human ], //   /(\n{2,}H: )/gm
+                    A: [ /(\n{2,}A: )/gm, Assistant ] //   /(\n{2,}A: )/gm
                 };
                 return Settings.ReplaceSamples && (replacers.H[0].test(text) || replacers.A[0].test(text)) ? text.replace(replacers.H[0], replacers.H[1]).replace(replacers.A[0], replacers.A[1]) : text;
             })(genericFixes(prompt));
