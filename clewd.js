@@ -1,75 +1,75 @@
 /**
- * SET YOUR COOKIE HERE
+ * PASTE YOUR COOKIE BETWEEN THE QUOTES
  * @preserve
  */
-const Cookies = '';
+const Cookies = '__cf_bm=Zz6zzHwUciRhcYg7zXFi5WRyFvdkYSgL1cwOHS9Ha2M-1689849893-0-AYPd59GXP7VCuqk6/qJiXz9hUUG7bU1QFwuly8sEJCPUEabtfInDygoW32bcmiPgJZbvJfbLkRMQtHkb/Bq07eE=; sessionKey=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; intercom-device-id-lupk8zyo=484dcdbf-2b88-4956-9bcb-565e942b0f2e; intercom-session-lupk8zyo=Qlp2Mlh2anBPeEIyQ0ZLTTJ5b09xb1FNS1VkaVlyeGgrOVFtaFRDNmlaQm9TTlVRMnkrQ0F4QVdhdnpSZ1JRRi0tczdjLzJUZGtPd3FkMktQZlZzYUM3dz09--5de6c68ca1d4f3166ee135959e7a3ad229bec1d7';
 
 /**
 ## EXPERIMENTAL
 
 ### SettingName: (DEFAULT)/opt1/opt2
 
- 1. AdaptClaude: (true)/false
-    * tries to make human/assistant prompts uniform between endpoints
-    * effective both with streaming on and off now
-    - Human->H
-    - Human<-H
-    - Assistant->A
-    - Assistant<-A
-
- 2. AntiStall: (false)/1/2
-    * no effect when using streaming
+ 1. AntiStall: (false)/1/2
+    * 1/2 has no effect when using streaming
     * 1 sends whatever was last when exceeding size (might have some spicy things but impersonations as well)
     * 2 sends a usable message where the bot actually stopped talking
 
- 3. ClearFlags: (false)/true
+ 2. ClearFlags: (false)/true
     * possibly snake-oil
 
- 4. DeleteChats: (false)/true
-    * for privacy, auto deletes your conversations after each reply
+ 3. DeleteChats: (false)/true
+    * true is for privacy, auto deletes your conversations after each reply
     * **if set to true, will also wipe old conversations on startup!**
     * no effect if RetryRegenerate is set to true
 
- 5. PassParams: (false)/true
+ 4. PassParams: (false)/true
     * true will send the temperature you set on your frontent
     * only values under <=1
     * this could get your account banned
     * if clewd stops working, set to false
 
- 6. PreventImperson: (true)/false
-    * trims the bot reply immediately if he says "Human:" or "H:"
-    * making it so it doesn't hallucinate speaking as you (chance of missing some spicy things)
+ 5. PreventImperson: (false)/true
+    * true trims the bot reply immediately if he says "Human:", "Assistant:", "H:" or "A:"
+    * making it so it doesn't hallucinate speaking as you __(chance of missing some spicy things)__
     * it's probable this will trigger before AntiStall if you have that on
 
- 7. PromptExperiment: (true)/false
-    * an alternative way to send your prompt to the AI
+ 6. PromptExperiment: (true)/false
+    * true is an alternative way to send your prompt to the AI
     * experiment before setting to false
 
- 8. RecycleChats: (false)/true
-    * reuses the same chat on the website, based on the first prompt
+ 7. RecycleChats: (false)/true
+    * true reuses the same chat on the website, based on the first prompt
     * false is less likely to get caught in a censorship loop
 
+ 8. ReplaceSamples: (false)/true
+    * true sends no "sample dialogues" to the AI (no "H" or "A")
+    * instead, you're always "Human" and the AI is always "Assistant"
+    * whatever the AI replies with is kept (only outgoing)
+    * [see this](https://docs.anthropic.com/claude/docs/prompt-troubleshooting-checklist#the-prompt-is-formatted-correctly) for more information
+    - H->Human
+    - A->Assistant
+
  9. RetryRegenerate: (false)/true
-    * uses the AI's own retry mechanism when you regenerate on your frontend
+    * true uses the AI's own retry mechanism when you regenerate on your frontend
     * instead of a new conversation
     * experiment with it
 
  10. StripAssistant: (false)/true
-    * might be good IF your prompt/jailbreak itself ends with Assistant: 
+    * true might be good IF your prompt/jailbreak itself ends with Assistant: 
 
  11. StripHuman: (false)/true
-    * bad idea without RecycleChats, sends only your very last message
+    * true is a bad idea without RecycleChats, sends only your very last message
 
  * @preserve
  */
 const Settings = {
     padtxt: process.env.padtxt || true,  //自动补全tokens超过10000
-    AdaptClaude: process.env.AdaptClaude || true,  //改为示例对话后的HA与system改为Human和Assistant
+    ReplaceSamples: process.env.ReplaceSamples || true,
     AntiStall: process.env.AntiStall || false,
     ClearFlags: process.env.ClearFlags || true,
     DeleteChats: process.env.DeleteChats || false,
     PassParams: process.env.PassParams || false,
-    PreventImperson: process.env.PreventImperson || true,
+    PreventImperson: process.env.PreventImperson || false,
     PromptExperiment: process.env.PromptExperiment || true,
     RecycleChats: process.env.RecycleChats || false,
     RetryRegenerate: process.env.RetryRegenerate || false,
@@ -80,10 +80,10 @@ const Settings = {
     xmlPlot: process.env.xmlPlot || true
 };
 
+/***********************/
 const Ip = process.env.PORT ? '0.0.0.0' : '127.0.0.1';
 const Port = 8444;
 
-/***********************/
 const Cookie = process.env.Cookie || Cookies;
 
 const localtunnel = require('localtunnel');
@@ -117,18 +117,6 @@ const RemoveFirstHuman = (json) => {
     const result = json.replace(regex, '').trim();
     return result
 };
-
-/*const AddxmlPlot = (json) => {
-    let lastChatIndex = json.lastIndexOf("\n\n[Start a new chat]\n\n");
-    if (lastChatIndex != -1) { 
-        let assistantIndex = json.indexOf("Assistant:", lastChatIndex);
-        if (assistantIndex != -1) {
-            let modifiedStr = json.slice(0, assistantIndex) + "<plot>\n\n" + json.slice(assistantIndex);
-            return modifiedStr;
-        }
-    }
-    return json
-};*/
 
 const AddxmlPlot = (content) => {
     // 检查内容中是否包含"<card>","[Start a new"字符串
@@ -168,14 +156,14 @@ const StallTrigger = 1572864;
 
 /**
  * How much will be buffered before one stream chunk goes through
- * lower = less chance of AdaptClaude working properly
- * @default 25
+ * lower = less chance of ReplaceSamples working properly
+ * @default 8
  * @preserve
  */
-const BufferSize = 15;
+const BufferSize = 8;
 
 const {createServer: Server, IncomingMessage: IncomingMessage, ServerResponse: ServerResponse} = require('node:http');
-const {createHash: Hash, randomUUID: UUID, randomInt: randomInt, randomBytes: randomBytes} = require('node:crypto');
+const {createHash: Hash, randomUUID: randomUUID, randomInt: randomInt, randomBytes: randomBytes} = require('node:crypto');
 const {TransformStream: TransformStream} = require('node:stream/web');
 const {Writable: Writable} = require('node:stream');
 
@@ -186,6 +174,7 @@ const Assistant = '\n\nAssistant: ';
 const Human = '\n\nHuman: ';
 const A = '\n\nA: ';
 const H = '\n\nH: ';
+const AH = [ ...new Set([ ...Assistant, ...Human, ...A, ...H, ...'\\n' ]) ].filter((char => ' ' !== char)).sort();
 
 const cookies = {};
 const UUIDMap = {};
@@ -218,14 +207,14 @@ const fileName = () => {
 
 const indexOfH = (text, last = false) => {
     let location = -1;
-    const matchesH = text.match(/[\n]{1,}(Human|H):[\s]*?/gm);
+    const matchesH = text.match(/(?:(?:\\n)|\n){2}((?:Human|H): ?)/gm);
     matchesH?.length > 0 && (location = last ? text.lastIndexOf(matchesH[matchesH.length - 1]) : text.indexOf(matchesH[0]));
     return location;
 };
 
 const indexOfA = (text, last = false) => {
     let location = -1;
-    const matchesA = text.match(/[\n]{1,}(Assistant|A):[\s]*?/gm);
+    const matchesA = text.match(/(?:(?:\\n)|\n){2}((?:Assistant|A): ?)/gm);
     matchesA?.length > 0 && (location = last ? text.lastIndexOf(matchesA[matchesA.length - 1]) : text.indexOf(matchesA[0]));
     return location;
 };
@@ -234,25 +223,7 @@ const cleanJSON = json => json.replace(/^data: {/gi, '{').replace(/\s+$/gi, '');
 
 const stallProtected = () => [ '1', '2' ].includes(Settings.AntiStall + '');
 
-const adaptClaude = (text, direction = 'outgoing') => {
-    text = text.replace(/(\r\n|\r|\\n)/gm, '\n');
-    if (!Settings.AdaptClaude) {
-        return text;
-    }
-    const replacers = {
-/***********************/
-        outgoing: {
-            H: [ /(\n{2,}(H|System): (?![\s\S]*?\n\n\[Start a new chat\]))/gm, Human ],
-            A: [ /(\n{2,}A: (?![\s\S]*?\n\n\[Start a new chat\]))/gm, Assistant ]
-        },
-        incoming: {
-            H: [ /(\n{2,}H: )/gm, H/*Human*/ ],
-            A: [ /(\n{2,}A: )/gm, A/*Assistant*/ ]
-        }
-/***********************/
-    };
-    return replacers[direction].H[0].test(text) || replacers[direction].A[0].test(text) ? text.replace(replacers[direction].H[0], replacers[direction].H[1]).replace(replacers[direction].A[0], replacers[direction].A[1]) : text;
-};
+const genericFixes = text => text.replace(/(\r\n|\r|\\n)/gm, '\n');
 
 const updateCookies = cookieInfo => {
     let cookieNew = cookieInfo instanceof Response ? cookieInfo.headers?.get('set-cookie') : cookieInfo.split('\n').join('');
@@ -276,19 +247,18 @@ const deleteChat = async uuid => {
             Cookie: getCookies(),
             'Content-Type': 'application/json'
         },
-        //agent: ProxyAgent,
         method: 'DELETE'
     });
     updateCookies(res);
 };
 
 const setTitle = title => {
-    title = 'clewd v2.4 - ' + title;
+    title = 'clewd v2.6 - ' + title;
     process.title !== title && (process.title = title);
 };
 
 class ClewdStream extends TransformStream {
-    constructor(minSize = 25, modelName = AI.modelA(), streaming) {
+    constructor(minSize = 8, modelName = AI.modelA(), streaming, abortController) {
         super({
             transform: (chunk, controller) => {
                 this.#handle(chunk, controller);
@@ -300,18 +270,20 @@ class ClewdStream extends TransformStream {
         this.#modelName = modelName;
         this.#minSize = minSize;
         this.#streaming = streaming;
+        this.#abortController = abortController;
     }
     #compLast='';
-    #minSize=15;
+    #minSize=void 0;
     #streaming=false;
     #compPure='';
+    #abortController=void 0;
     #modelName='';
     #compAll=[];
     #compValid=[];
     #compInvalid=[];
     #recvLength=0;
-    #stopLoc=null;
-    #stopReason=null;
+    #stopLoc=void 0;
+    #stopReason=void 0;
     #hardCensor=false;
     get size() {
         return this.#recvLength;
@@ -350,7 +322,7 @@ class ClewdStream extends TransformStream {
     #build(cutoff) {
         const completion = this.#cutBuffer(cutoff);
         const builtReply = JSON.stringify({
-            completion: adaptClaude(completion, 'incoming'),
+            completion: genericFixes(completion),
             stop_reason: this.#stopReason,
             model: this.modelName,
             stop: this.#stopLoc,
@@ -377,7 +349,7 @@ class ClewdStream extends TransformStream {
             controller.enqueue(this.#build(this.#compLast.length));
             return controller.terminate();
         }
-        const validCompletion = this.#compAll.find((completion => completion.indexOf(H) > -1 || completion.indexOf(Human) > -1));
+        const validCompletion = this.#compAll.find((completion => indexOfH(completion) > -1));
         if (validCompletion) {
             this.#compLast = validCompletion;
             const fakeHuman = indexOfH(validCompletion);
@@ -391,9 +363,14 @@ class ClewdStream extends TransformStream {
             return;
         }
         let cutLimit = completion.length;
-        const fakeHuman = indexOfH(completion);
-        if (fakeHuman > -1) {
-            cutLimit = fakeHuman;
+        const fakeAny = ((text, last = false) => {
+            let location = -1;
+            const fakes = [ indexOfH(text, last), indexOfA(text, last) ].filter((idx => idx > -1)).sort();
+            location = last ? fakes.reverse()[0] : fakes[0];
+            return isNaN(location) ? -1 : location;
+        })(completion);
+        if (fakeAny > -1) {
+            cutLimit = fakeAny;
             this.#print();
             console.log(`[33mimpersonation, dropped:[0m [4m${completion.substring(cutLimit, completion.length).split('\n').join(' ')}[0m`);
             controller.enqueue(this.#build(cutLimit));
@@ -424,15 +401,14 @@ class ClewdStream extends TransformStream {
                 completion = completionMatch.join('');
                 this.#compInvalid.push(completion);
             }
-        } finally {
-            if (!completion) {
-                return;
-            }
+        }
+        if (completion && !(completion.length < 1)) {
             this.#compAll.push(completion);
             if (this.#streaming) {
                 this.#compPure += completion;
+                const delayChunk = Settings.PreventImperson && AH.some((char => this.#compPure.endsWith(char) || completion.startsWith(char)));
                 this.#impersonationCheck(controller, this.#compPure);
-                for (;this.#compPure.length >= this.#minSize; ) {
+                for (;!delayChunk && this.#compPure.length >= this.#minSize; ) {
                     controller.enqueue(this.#build(this.#compPure.length));
                 }
             } else {
@@ -453,7 +429,7 @@ const Proxy = Server(((req, res) => {
                 param: null,
                 code: 404
             }
-        }, 200);
+        }, 404);
     }
     setTitle('recv...');
     let fetchAPI;
@@ -468,13 +444,14 @@ const Proxy = Server(((req, res) => {
     }));
     req.on('end', (async () => {
         let titleTimer;
+        let promptSHA;
         try {
             const body = JSON.parse(Buffer.concat(buffer).toString());
             const attachments = [];
             const temperature = Math.max(0, Math.min(1, body.temperature));
             let {prompt: prompt} = body;
-            const retryingMessage = Settings.RetryRegenerate && prompt === lastPrompt;
-            retryingMessage || (lastPrompt = prompt);
+            const samePrompt = Settings.RetryRegenerate && prompt === lastPrompt;
+            samePrompt || (lastPrompt = prompt);
             if (!body.stream && prompt === `${Human}${Human}Hi${Assistant}`) {
                 return res.json({
                     error: false
@@ -483,38 +460,46 @@ const Proxy = Server(((req, res) => {
             const model = /claude-v?2.*/.test(body.model) ? AI.modelA() : body.model;
             model !== AI.modelA() && console.log(`[33mmodel[0m [1m${AI.modelA()}[0m [33mrecommended[0m`);
             stallProtected() || body.stream || Settings.PreventImperson || console.log('[33mhaving[0m [1mPreventImperson[0m: true or [1mAntiStall[0m [33m: 1/2 is good when not streaming[0m');
-            const firstAssistantIdx = indexOfA(prompt);            const lastAssistantIdx = indexOfA(prompt, true);
+            const firstAssistantIdx = indexOfA(prompt);
+            const lastAssistantIdx = indexOfA(prompt, true);
             const lastHumanIdx = indexOfH(prompt, true);
             /**
              * Ideally SillyTavern would expose a unique frontend conversation_uuid prop to localhost proxies
              * could set the name to a hash of it
              * then fetch /chat_conversations with 'GET' and find it
              * @preserve
-             */            const hash = Hash('sha1');
+             */
+			const hash = Hash('sha1');
             hash.update(prompt.substring(0, firstAssistantIdx));
-            const sha = Settings.RecycleChats ? hash.digest('hex') : '';
-            const uuidOld = UUIDMap[sha];
+            promptSHA = Settings.RecycleChats ? hash.digest('hex') : '';
+            const uuidOld = UUIDMap[promptSHA];
             Settings.StripHuman && lastHumanIdx > -1 && uuidOld && (prompt = prompt.substring(lastHumanIdx, prompt.length));
             Settings.StripAssistant && lastAssistantIdx > -1 && (prompt = prompt.substring(0, lastAssistantIdx));
-            prompt = adaptClaude(prompt, 'outgoing');
+            prompt = (text => {
+                const replacers = {
+                    H: [ /(\n{2,}H: )/gm, Human ],
+                    A: [ /(\n{2,}A: )/gm, Assistant ]
+                };
+                return Settings.ReplaceSamples && (replacers.H[0].test(text) || replacers.A[0].test(text)) ? text.replace(replacers.H[0], replacers.H[1]).replace(replacers.A[0], replacers.A[1]) : text;
+            })(genericFixes(prompt));
 /*****************************/
             if (Settings.RemoveFirstH) {prompt = RemoveFirstHuman(prompt);}
             if (Settings.xmlPlot) {prompt = AddxmlPlot(prompt);}
             if (Settings.FullColon) {prompt = prompt.replace(/: /g, "：");}
-/*****************************/
-            if (Settings.PromptExperiment && !retryingMessage) {
+/*****************************/         
+            if (Settings.PromptExperiment && !samePrompt) {
                 attachments.push({
 /*****************************/
                     extracted_content: padJson(prompt),
                     file_name: 'paste.txt',  //fileName(),
                     file_size: Buffer.from(prompt).length,
                     file_type: 'txt'  //'text/plain'
-/*****************************/                    
+/*****************************/  
                 });
                 prompt = '';
             }
-            if (!uuidOld && Settings.RecycleChats || !retryingMessage) {
-                uuidTemp = UUID().toString();
+            if (!uuidOld && Settings.RecycleChats || !samePrompt) {
+                uuidTemp = randomUUID().toString();
                 fetchAPI = await fetch(`${AI.endPoint()}/api/organizations/${uuidOrg}/chat_conversations`, {
                     signal: signal,
                     headers: {
@@ -522,27 +507,25 @@ const Proxy = Server(((req, res) => {
                         'Content-Type': 'application/json'
                     },
                     method: 'POST',
-                    //agent: ProxyAgent,
                     body: JSON.stringify({
                         uuid: uuidTemp,
-                        name: sha
+                        name: promptSHA
                     })
                 });
                 updateCookies(fetchAPI);
                 console.log('' + model);
-                UUIDMap[sha] = uuidTemp;
+                UUIDMap[promptSHA] = uuidTemp;
             } else {
                 uuidTemp = uuidOld;
-                retryingMessage && Settings.RecycleChats ? console.log(model + ' [rR]') : retryingMessage ? console.log(model + ' [r]') : Settings.RecycleChats ? console.log(model + ' [R]') : console.log('' + model);
+                samePrompt && Settings.RecycleChats ? console.log(model + ' [rR]') : samePrompt ? console.log(model + ' [r]') : Settings.RecycleChats ? console.log(model + ' [R]') : console.log('' + model);
             }
-            fetchAPI = await fetch(`${AI.endPoint()}${retryingMessage ? '/api/retry_message' : '/api/append_message'}`, {
+            fetchAPI = await fetch(`${AI.endPoint()}${samePrompt ? '/api/retry_message' : '/api/append_message'}`, {
                 signal: signal,
                 headers: {
                     Cookie: getCookies(),
                     'Content-Type': 'application/json'
                 },
                 method: 'POST',
-                //agent: ProxyAgent,
                 body: JSON.stringify({
                     completion: {
                         ...Settings.PassParams && {
@@ -564,7 +547,7 @@ const Proxy = Server(((req, res) => {
             if (200 !== fetchAPI.status) {
                 return fetchAPI.body.pipeTo(response);
             }
-            const clewdStream = new ClewdStream(BufferSize, model, true === body.stream);
+            const clewdStream = new ClewdStream(BufferSize, model, true === body.stream, controller);
             titleTimer = setInterval((() => setTitle(`recv${true === body.stream ? ' (s)' : ''} ${((bytes = 0) => {
                 const b = [ 'B', 'KB', 'MB', 'GB', 'TB' ];
                 if (0 === bytes) {
@@ -575,12 +558,8 @@ const Proxy = Server(((req, res) => {
             })(clewdStream.size)}`)), 300);
             await fetchAPI.body.pipeThrough(clewdStream).pipeTo(response);
             clewdStream.censored && console.log('[33mlikely your account is hard-censored[0m');
-            console.log(`${200 == fetchAPI.status ? '[32m' : '[33m'}${fetchAPI.status}![0m${true === retryingMessage ? ' [r]' : ''}${true === body.stream ? ' (s)' : ''} ${clewdStream.broken} broken\n`);
+            console.log(`${200 == fetchAPI.status ? '[32m' : '[33m'}${fetchAPI.status}![0m${true === samePrompt ? ' [r]' : ''}${true === body.stream ? ' (s)' : ''} ${clewdStream.broken} broken\n`);
             clewdStream.empty();
-            if (Settings.DeleteChats && !Settings.RetryRegenerate && !Settings.RecycleChats) {
-                await deleteChat(uuidTemp);
-                delete UUIDMap[sha];
-            }
         } catch (err) {
             if ('AbortError' === err.name) {
                 return res.end();
@@ -597,6 +576,12 @@ const Proxy = Server(((req, res) => {
         } finally {
             clearInterval(titleTimer);
             titleTimer = null;
+            if (Settings.DeleteChats && !Settings.RetryRegenerate && !Settings.RecycleChats) {
+                try {
+                    await deleteChat(uuidTemp);
+                } catch (err) {}
+                delete UUIDMap[promptSHA];
+            }
         }
     }));
 }));
@@ -604,7 +589,6 @@ const Proxy = Server(((req, res) => {
 Proxy.listen(Port, Ip, (async () => {
     const accRes = await fetch(AI.endPoint() + '/api/organizations', {
         method: 'GET',
-        //agent: ProxyAgent,
         headers: {
             Cookie: Cookie
         }
@@ -619,7 +603,7 @@ Proxy.listen(Port, Ip, (async () => {
     setTitle('ok');
     updateCookies(Cookie);
     updateCookies(accRes);
-    console.log(`[2mclewd v2.4[0m\n[33mhttp://${Ip}:${Port}/v1[0m\n\n${Object.keys(Settings).map((setting => `[1m${setting}:[0m [36m${Settings[setting]}[0m`)).sort().join('\n')}\n`);
+    console.log(`[2mclewd v2.6[0m\n[33mhttp://${Ip}:${Port}/v1[0m\n\n${Object.keys(Settings).map((setting => `[1m${setting}:[0m [36m${Settings[setting]}[0m`)).sort().join('\n')}\n`);
 /*******************************/    
     localtunnel({ port: Port })
     .then((tunnel) => {
@@ -643,19 +627,16 @@ Proxy.listen(Port, Ip, (async () => {
                     Cookie: getCookies(),
                     'Content-Type': 'application/json'
                 },
-                //agent: ProxyAgent,
-                method: 'POST',
+                method: 'POST'
             });
             updateCookies(req);
-
             const json = await req.json();
             console.log(`${flag}: ${json.error ? json.error.message || json.error.type || json.detail : 'OK'}`);
         })(flag))));
     }
-    if (!Settings.RecycleChats || Settings.DeleteChats) {
+    if (Settings.RecycleChats || Settings.DeleteChats) {
         const convRes = await fetch(`${AI.endPoint()}/api/organizations/${uuidOrg}/chat_conversations`, {
             method: 'GET',
-            //agent: ProxyAgent,
             headers: {
                 Cookie: getCookies()
             }
