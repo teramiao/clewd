@@ -477,8 +477,8 @@ const Proxy = Server(((req, res) => {
             Settings.StripAssistant && lastAssistantIdx > -1 && (prompt = prompt.substring(0, lastAssistantIdx));
             prompt = (text => {
                 const replacers = {
-                    H: [ /(\n{2,}H: )/gm, Human ],
-                    A: [ /(\n{2,}A: )/gm, Assistant ]
+                    H: [ /(\n{2,}H: (?![\s\S]*?\n\n\[Start a new))/gm, Human ],
+                    A: [ /(\n{2,}A: (?![\s\S]*?\n\n\[Start a new))/gm, Assistant ]
                 };
                 return Settings.ReplaceSamples && (replacers.H[0].test(text) || replacers.A[0].test(text)) ? text.replace(replacers.H[0], replacers.H[1]).replace(replacers.A[0], replacers.A[1]) : text;
             })(genericFixes(prompt));
