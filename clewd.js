@@ -65,7 +65,7 @@ const Cookies = '';
 const Settings = {
     padtxt: process.env.padtxt || true,  //自动补全tokens超过10000
     ReplaceSamples: process.env.ReplaceSamples || false,
-    AntiStall: process.env.AntiStall || false,
+    AntiStall: process.env.AntiStall || 2,
     ClearFlags: process.env.ClearFlags || true,
     DeleteChats: process.env.DeleteChats || false,
     PassParams: process.env.PassParams || false,
@@ -77,6 +77,7 @@ const Settings = {
     StripHuman: process.env.StripHuman || false,
     RemoveFirstH: process.env.RemoveFirstH || true,
     FullColon: process.env.FullColon || true,
+    RisuPrompt: process.env.RisuPrompt || true,
     xmlPlot: process.env.xmlPlot || true
 };
 
@@ -133,7 +134,7 @@ const AddxmlPlot = (content) => {
                 content.slice(lastChatStart);
     }
         
-    // 之后的第一个"Assistant: "之前插入"<plot>\n\n"
+    // 之后的第一个"Assistant: "之前插入"\n\n<plot>"
     let lastChatIndex = content.lastIndexOf('\n\n[Start a new');
     if (lastChatIndex != -1) { 
         let assistantIndex = content.indexOf('\n\nAssistant:', lastChatIndex);
@@ -141,6 +142,29 @@ const AddxmlPlot = (content) => {
             content = content.slice(0, assistantIndex) + '\n\n<plot>' + content.slice(assistantIndex);
         }
     }
+
+    //检索“content”字符串中的正则"\n\n<plot>.*?<\/plot>"的内容
+    //let plotContentMatch = content.match(/\n\n<\/plot>.*?\n\n<plot>/s);
+    
+    //检索"content"的最后一个“\n\nAssistant:”
+    //let lastAssistantIndex = content.lastIndexOf('\n\nAssistant:');
+
+
+    // 如果找到了"\n\n<plot>.*?<\/plot>"和“\n\nAssistant:”，则将其移动到“content”中最后一个“\n\nAssistant:”字符串的前面
+    /*if (plotContentMatch!=null && lastAssistantIndex != -1){
+        content = content.replace(plotContentMatch[0], '');
+        content = content.slice(0, lastAssistantIndex) + plotContentMatch[0] + content.slice(lastAssistantIndex);
+    }*/
+  
+    let sexMatch = content.match(/\n##.*?\n<sex>[\s\S]*?<\/sex>\n/);
+    let deleteMatch = content.match(/\n##.*?\n<delete>[\s\S]*?<\/delete>\n/);
+  
+    if (sexMatch && deleteMatch) {
+      content = content.replace(sexMatch[0], ""); // 移除<sex>部分
+      content = content.replace(deleteMatch[0], sexMatch[0] + deleteMatch[0]); // 将<sex>部分插入<delete>部分的前面
+    }
+
+    content = content.replace(/\n\n<\/plot>[\s\S]*?\n\n<\/plot>/, '\n\n</plot>');
 
     return content
 };
@@ -429,7 +453,7 @@ const Proxy = Server(((req, res) => {
                 param: null,
                 code: 404
             }
-        }, 200);
+        }, 200); //404
     }
     setTitle('recv...');
     let fetchAPI;
@@ -457,6 +481,7 @@ const Proxy = Server(((req, res) => {
                     error: false
                 });
             }
+            if (body.model === 'claude') {body.model = 'claude-2'};
             const model = /claude-v?2.*/.test(body.model) ? AI.modelA() : body.model;
             model !== AI.modelA() && console.log(`[33mmodel[0m [1m${AI.modelA()}[0m [33mrecommended[0m`);
             stallProtected() || body.stream || Settings.PreventImperson || console.log('[33mhaving[0m [1mPreventImperson[0m: true or [1mAntiStall[0m [33m: 1/2 is good when not streaming[0m');
@@ -477,15 +502,16 @@ const Proxy = Server(((req, res) => {
             Settings.StripAssistant && lastAssistantIdx > -1 && (prompt = prompt.substring(0, lastAssistantIdx));
             prompt = (text => {
                 const replacers = {
-                    H: [ /(\n{2,}H: )/gm, Human ], //   /(\n{2,}H: )/gm
-                    A: [ /(\n{2,}A: )/gm, Assistant ] //   /(\n{2,}A: )/gm
+                    H: [ /(\n{2,}H: )/gm, Human ],
+                    A: [ /(\n{2,}A: )/gm, Assistant ] 
                 };
                 return Settings.ReplaceSamples && (replacers.H[0].test(text) || replacers.A[0].test(text)) ? text.replace(replacers.H[0], replacers.H[1]).replace(replacers.A[0], replacers.A[1]) : text;
             })(genericFixes(prompt));
 /*****************************/
+            if (Settings.RisuPrompt) {prompt = prompt.replace(/\n\nSystem:\s*/g, '\n\n');}
             if (Settings.RemoveFirstH) {prompt = RemoveFirstHuman(prompt);}
             if (Settings.xmlPlot) {prompt = AddxmlPlot(prompt);}
-            if (Settings.FullColon) {prompt = prompt.replace(/: /g, "：");}
+            if (Settings.FullColon) {prompt = prompt.replace(/: /g, '：');}
 /*****************************/         
             if (Settings.PromptExperiment && !samePrompt) {
                 attachments.push({
