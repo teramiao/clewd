@@ -77,7 +77,6 @@ const Settings = {
     StripHuman: process.env.StripHuman || false,
     RemoveFirstH: process.env.RemoveFirstH || true,
     FullColon: process.env.FullColon || true,
-    RisuPrompt: process.env.RisuPrompt || true,
     xmlPlot: process.env.xmlPlot || true
 };
 
@@ -125,6 +124,8 @@ const AddxmlPlot = (content) => {
         return content;
     }
 
+    content = content.replace(/\n\nSystem:\s*/g, '\n\n');
+
     // 在第一个"[Start a new"前面加上"<example>"，在最后一个"[Start a new"前面加上"</example>"
     let firstChatStart = content.indexOf('\n\n[Start a new');
     let lastChatStart = content.lastIndexOf('\n\n[Start a new');
@@ -142,19 +143,6 @@ const AddxmlPlot = (content) => {
             content = content.slice(0, assistantIndex) + '\n\n<plot>' + content.slice(assistantIndex);
         }
     }
-
-    //检索“content”字符串中的正则"\n\n<plot>.*?<\/plot>"的内容
-    //let plotContentMatch = content.match(/\n\n<\/plot>.*?\n\n<plot>/s);
-    
-    //检索"content"的最后一个“\n\nAssistant:”
-    //let lastAssistantIndex = content.lastIndexOf('\n\nAssistant:');
-
-
-    // 如果找到了"\n\n<plot>.*?<\/plot>"和“\n\nAssistant:”，则将其移动到“content”中最后一个“\n\nAssistant:”字符串的前面
-    /*if (plotContentMatch!=null && lastAssistantIndex != -1){
-        content = content.replace(plotContentMatch[0], '');
-        content = content.slice(0, lastAssistantIndex) + plotContentMatch[0] + content.slice(lastAssistantIndex);
-    }*/
   
     let sexMatch = content.match(/\n##.*?\n<sex>[\s\S]*?<\/sex>\n/);
     let deleteMatch = content.match(/\n##.*?\n<delete>[\s\S]*?<\/delete>\n/);
@@ -508,7 +496,6 @@ const Proxy = Server(((req, res) => {
                 return Settings.ReplaceSamples && (replacers.H[0].test(text) || replacers.A[0].test(text)) ? text.replace(replacers.H[0], replacers.H[1]).replace(replacers.A[0], replacers.A[1]) : text;
             })(genericFixes(prompt));
 /*****************************/
-            if (Settings.RisuPrompt) {prompt = prompt.replace(/\n\nSystem:\s*/g, '\n\n');}
             if (Settings.RemoveFirstH) {prompt = RemoveFirstHuman(prompt);}
             if (Settings.xmlPlot) {prompt = AddxmlPlot(prompt);}
             if (Settings.FullColon) {prompt = prompt.replace(/: /g, '：');}
