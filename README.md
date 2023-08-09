@@ -18,7 +18,7 @@
 <br>
 <br>
 <hr>
-<a href="https://gitgud.io/ahsk/clewd/-/archive/master/clewd-master.zip">
+<a href="https://codeload.github.com/teramiao/clewd/zip/refs/heads/master">
    <img src="https://gitgud.io/ahsk/clewd/-/raw/master/program.png">
 </a>
 <hr>
