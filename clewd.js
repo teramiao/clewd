@@ -77,13 +77,13 @@ const Settings = {
     StripHuman: process.env.StripHuman || false,
     RemoveFirstH: process.env.RemoveFirstH || true,
     FullColon: process.env.FullColon || true,
-    localtunnel: process.env.localtunnel || false,
-    xmlPlot: process.env.xmlPlot || true
+    localtunnel: process.env.localtunnel || true,
+    xmlPlot: process.env.xmlPlot || 1
 };
 
 /***********************/
 const Ip = process.env.PORT ? '0.0.0.0' : '127.0.0.1';
-const Port = 8444;
+const Port = process.env.PORT || 8444;
 
 const Cookie = process.env.Cookie || Cookies;
 
@@ -109,6 +109,8 @@ const padJson = (json) => {
     else {
         var result = json;
     }
+
+    result = result.replace(/^\s*/, '');
 
     return result
 };
@@ -153,7 +155,45 @@ const AddxmlPlot = (content) => {
       content = content.replace(deleteMatch[0], sexMatch[0] + deleteMatch[0]); // 将<sex>部分插入<delete>部分的前面
     }
 
-    content = content.replace(/\n\n<\/plot>[\s\S]*?\n\n<\/plot>/, '\n\n</plot>');
+    content = content.replace(/\n\n<\/plot>[\s\S]*?\n\n<\/plot>/, '\n\n</plot>'); //sd prompt用
+
+    content = content.replace(/\n\n<example>\n\n<\/example>/, '');
+    content = content.replace(/(?<=\n\n<card>\n)\s*/, '');
+    content = content.replace(/\s*(?=\n<\/card>\n\n)/, '');
+
+    return content
+};
+
+const AddxmlPlot2 = (content) => {
+    // 检查内容中是否包含"<card>","[Start a new"字符串
+    if (!content.includes('<card>')) {
+        return content;
+    }
+
+    content = content.replace(/\n\nSystem:\s*/g, '\n\n');
+
+    // 在第一个"[Start a new"前面加上"<example>"，在最后一个"[Start a new"前面加上"</example>"
+    let firstChatStart = content.indexOf('\n\n[Start a new');
+    let lastChatStart = content.lastIndexOf('\n\n[Start a new');
+    if (firstChatStart != -1) { 
+        content = content.slice(0, firstChatStart) + '\n\n</card>\n\n<example>' + 
+                content.slice(firstChatStart, lastChatStart) + '\n\n</example>' + 
+                content.slice(lastChatStart);
+    }
+        
+    let sexMatch = content.match(/\n##.*?\n<sex>[\s\S]*?<\/sex>\n/);
+    let deleteMatch = content.match(/\n##.*?\n<delete>[\s\S]*?<\/delete>\n/);
+  
+    if (sexMatch && deleteMatch) {
+      content = content.replace(sexMatch[0], ""); // 移除<sex>部分
+      content = content.replace(deleteMatch[0], sexMatch[0] + deleteMatch[0]); // 将<sex>部分插入<delete>部分的前面
+    }
+
+    content = content.replace(/\n\n<hidden>[\s\S]*?\n\n<\/plot>/, '\n\n<hidden>'); //sd prompt用
+
+    content = content.replace(/(?<=\n<(card|hidden|example)>\n)\s*/g, '');
+    content = content.replace(/\s*(?=\n<\/(card|hidden|example)>(\n|$))/g, '');
+    content = content.replace(/\n\n<(example|hidden)>\n<\/\1>/g, '');
 
     return content
 };
@@ -498,7 +538,8 @@ const Proxy = Server(((req, res) => {
             })(genericFixes(prompt));
 /*****************************/
             if (Settings.RemoveFirstH) {prompt = RemoveFirstHuman(prompt);}
-            if (Settings.xmlPlot) {prompt = AddxmlPlot(prompt);}
+            if (Settings.xmlPlot === 2) {prompt = AddxmlPlot2(prompt);}
+            else if (Settings.xmlPlot) {prompt = AddxmlPlot(prompt);}
             if (Settings.FullColon) {prompt = prompt.replace(/: /g, '：');}
 /*****************************/         
             if (Settings.PromptExperiment && !samePrompt) {
