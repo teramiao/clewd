@@ -24,8 +24,3 @@
 <hr>
 
 </div>
-
-> ### [Download latest version](https://gitgud.io/ahsk/clewd/-/archive/master/clewd-master.zip)
-
-
-> ### [Download old version](https://gitgud.io/ahsk/clewd/-/archive/1.6/clewd-1.6.zip)
