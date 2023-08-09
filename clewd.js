@@ -77,7 +77,7 @@ const Settings = {
     StripHuman: process.env.StripHuman || false,
     RemoveFirstH: process.env.RemoveFirstH || true,
     FullColon: process.env.FullColon || true,
-    localtunnel: process.env.localtunnel || true,
+    localtunnel: process.env.localtunnel || false,
     xmlPlot: process.env.xmlPlot || 1
 };
 
