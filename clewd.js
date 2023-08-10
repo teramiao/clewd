@@ -78,7 +78,7 @@ const Settings = {
     RemoveFirstH: process.env.RemoveFirstH || true,
     FullColon: process.env.FullColon || true,
     localtunnel: process.env.localtunnel || false,
-    xmlPlot: process.env.xmlPlot || 1
+    xmlPlot: process.env.xmlPlot || true
 };
 
 /***********************/
@@ -86,8 +86,6 @@ const Ip = process.env.PORT ? '0.0.0.0' : '127.0.0.1';
 const Port = process.env.PORT || 8444;
 
 const Cookie = process.env.Cookie || Cookies;
-
-//const localtunnel = require('localtunnel');
 
 const padJson = (json) => {
     var placeholder = '以上内容无效 '; // 定义占位符
@@ -140,7 +138,7 @@ const AddxmlPlot = (content) => {
         
     // 之后的第一个"Assistant: "之前插入"\n\n<plot>"
     let lastChatIndex = content.lastIndexOf('\n\n[Start a new');
-    if (lastChatIndex != -1) { 
+    if (lastChatIndex != -1 && content.includes('</plot>')) { 
         let assistantIndex = content.indexOf('\n\nAssistant:', lastChatIndex);
         if (assistantIndex != -1) {
             content = content.slice(0, assistantIndex) + '\n\n<plot>' + content.slice(assistantIndex);
@@ -151,52 +149,27 @@ const AddxmlPlot = (content) => {
     let deleteMatch = content.match(/\n##.*?\n<delete>[\s\S]*?<\/delete>\n/);
   
     if (sexMatch && deleteMatch) {
-      content = content.replace(sexMatch[0], ""); // 移除<sex>部分
-      content = content.replace(deleteMatch[0], sexMatch[0] + deleteMatch[0]); // 将<sex>部分插入<delete>部分的前面
+        content = content.replace(sexMatch[0], ""); // 移除<sex>部分
+        content = content.replace(deleteMatch[0], sexMatch[0] + deleteMatch[0]); // 将<sex>部分插入<delete>部分的前面
     }
 
-    content = content.replace(/\n\n<\/plot>[\s\S]*?\n\n<\/plot>/, '\n\n</plot>'); //sd prompt用
+    let illustrationMatch = content.match(/\n##.*?\n<illustration>[\s\S]*?<\/illustration>\n/);
 
-    content = content.replace(/\n\n<example>\n\n<\/example>/, '');
-    content = content.replace(/(?<=\n\n<card>\n)\s*/, '');
-    content = content.replace(/\s*(?=\n<\/card>\n\n)/, '');
-
-    return content
-};
-
-const AddxmlPlot2 = (content) => {
-    // 检查内容中是否包含"<card>","[Start a new"字符串
-    if (!content.includes('<card>')) {
-        return content;
+    if (illustrationMatch && deleteMatch) {
+        content = content.replace(illustrationMatch[0], ""); // 移除<sex>部分
+        content = content.replace(deleteMatch[0], illustrationMatch[0] + deleteMatch[0]); // 将<illustration>部分插入<delete>部分的前面
     }
 
-    content = content.replace(/\n\nSystem:\s*/g, '\n\n');
+    content = content.replace(/\n\n<(hidden|\/plot)>[\s\S]*?\n\n<extra_prompt>\s*/, '\n\nHuman:'); //sd prompt用
 
-    // 在第一个"[Start a new"前面加上"<example>"，在最后一个"[Start a new"前面加上"</example>"
-    let firstChatStart = content.indexOf('\n\n[Start a new');
-    let lastChatStart = content.lastIndexOf('\n\n[Start a new');
-    if (firstChatStart != -1) { 
-        content = content.slice(0, firstChatStart) + '\n\n</card>\n\n<example>' + 
-                content.slice(firstChatStart, lastChatStart) + '\n\n</example>' + 
-                content.slice(lastChatStart);
-    }
-        
-    let sexMatch = content.match(/\n##.*?\n<sex>[\s\S]*?<\/sex>\n/);
-    let deleteMatch = content.match(/\n##.*?\n<delete>[\s\S]*?<\/delete>\n/);
-  
-    if (sexMatch && deleteMatch) {
-      content = content.replace(sexMatch[0], ""); // 移除<sex>部分
-      content = content.replace(deleteMatch[0], sexMatch[0] + deleteMatch[0]); // 将<sex>部分插入<delete>部分的前面
-    }
-
-    content = content.replace(/\n\n<hidden>[\s\S]*?\n\n<\/plot>/, '\n\n<hidden>'); //sd prompt用
-
+    //消除空XML tags或多余的\n
     content = content.replace(/(?<=\n<(card|hidden|example)>\n)\s*/g, '');
     content = content.replace(/\s*(?=\n<\/(card|hidden|example)>(\n|$))/g, '');
     content = content.replace(/\n\n<(example|hidden)>\n<\/\1>/g, '');
 
     return content
 };
+
 /***********************/
 
 /**
@@ -465,7 +438,7 @@ class ClewdStream extends TransformStream {
                     controller.enqueue(this.#build(this.#compPure.length));
                 }
             } else {
-                this.#compLast = completion;
+                this.#compLast += completion;
                 this.#stallCheck(controller);
                 this.#impersonationCheck(controller, this.#compLast);
             }
@@ -538,9 +511,8 @@ const Proxy = Server(((req, res) => {
             })(genericFixes(prompt));
 /*****************************/
             if (Settings.RemoveFirstH) {prompt = RemoveFirstHuman(prompt);}
-            if (Settings.xmlPlot === 2) {prompt = AddxmlPlot2(prompt);}
-            else if (Settings.xmlPlot) {prompt = AddxmlPlot(prompt);}
-            if (Settings.FullColon) {prompt = prompt.replace(/: /g, '：');}
+            if (Settings.xmlPlot) {prompt = AddxmlPlot(prompt);}
+            if (Settings.FullColon) {prompt = prompt.replace(/(?<=\n\n(H(?:uman)?|A(?:ssistant)?)):[ ]?/g, '：');}
 /*****************************/         
             if (Settings.PromptExperiment && !samePrompt) {
                 attachments.push({
@@ -586,7 +558,7 @@ const Proxy = Server(((req, res) => {
                         ...Settings.PassParams && {
                             temperature: temperature
                         },
-                        incremental: true === body.stream,
+                        //incremental: true === body.stream,
                         prompt: prompt,
                         timezone: 'America/New_York',
                         model: model
@@ -658,7 +630,7 @@ Proxy.listen(Port, Ip, (async () => {
     setTitle('ok');
     updateCookies(Cookie);
     updateCookies(accRes);
-    console.log(`[2mclewd v2.6[0m\n[33mhttp://${Ip}:${Port}/v1[0m\n\n${Object.keys(Settings).map((setting => `[1m${setting}:[0m [36m${Settings[setting]}[0m`)).sort().join('\n')}\n`);
+    console.log(`[2mclewd v2.6修改版\nhttps://rentry.org/teralomaniac_clewd[0m\n\n[33mhttp://${Ip}:${Port}/v1[0m\n\n${Object.keys(Settings).map((setting => `[1m${setting}:[0m [36m${Settings[setting]}[0m`)).sort().join('\n')}\n`);
 /*******************************/    
     if (Settings.localtunnel) {
         const localtunnel = require('localtunnel');
