@@ -88,7 +88,8 @@ const Port = process.env.PORT || 8444;
 const Cookie = process.env.Cookie || Cookies;
 
 const padJson = (json) => {
-    var placeholder = '以上内容无效 '; // 定义占位符
+    const bytes = randomInt(5, 15);
+    var placeholder = randomBytes(bytes).toString('hex');  // 定义占位符
     var sizeInBytes = new Blob([json]).size; // 计算json数据的字节大小
 
     // 计算需要添加的占位符数量, 注意你需要注意到UTF-8编码中中文字符占3字节
