@@ -8,9 +8,8 @@
 
 <br>
 <br>
-<hr>
-<a href="https://codeload.github.com/teramiao/clewd/zip/refs/heads/master">
+
 </a>
-<hr>
+
 
 </div>
