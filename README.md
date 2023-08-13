@@ -4,6 +4,8 @@
 </a>
 <br>
 
+[此仓库已停止更新，转移到此分支更新](https://github.com/teralomaniac/clewd/tree/2.7)
+
 [原版Clewd](https://gitgud.io/ahsk/clewd) 
 
 [修改版Clewd&教程](https://rentry.org/teralomaniac_clewd) 
